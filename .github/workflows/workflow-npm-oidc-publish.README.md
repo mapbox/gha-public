@@ -210,20 +210,9 @@ For **scoped packages** to be public, ensure:
 
 **Solution**: This workflow includes the permission - ensure you're not overriding it
 
-## Security Notes
-
-- ✅ No long-lived tokens stored in repository secrets
-- ✅ OIDC tokens are short-lived and workflow-specific
-- ✅ Automatic provenance provides supply chain transparency
-- ⚠️ Only works for **public packages** - private packages still require tokens
-- ⚠️ Trusted Publisher config is permanent - review carefully before creating
-
 ## More Information
 
 - [npm Trusted Publishing Documentation](https://docs.npmjs.com/trusted-publishers/)
 - [GitHub OIDC Documentation](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
 - [npm Provenance Documentation](https://docs.npmjs.com/generating-provenance-statements/)
 
-## License
-
-MIT
