@@ -1,0 +1,99 @@
+name: NPM OIDC Publish Workflow
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use (default: 20)'
+        type: string
+        required: false
+        default: '20'
+      working-directory:
+        description: 'Working directory for the package (default: .)'
+        type: string
+        required: false
+        default: '.'
+      npm-tag:
+        description: 'NPM dist-tag to use (default: latest)'
+        type: string
+        required: false
+        default: 'latest'
+      run-tests:
+        description: 'Run npm test before publishing (default: true)'
+        type: boolean
+        required: false
+        default: true
+      dry-run:
+        description: 'Perform a dry-run publish (default: false)'
+        type: boolean
+        required: false
+        default: false
+
+    outputs:
+      package-name:
+        description: 'The published package name'
+        value: ${{ jobs.publish.outputs.package-name }}
+      package-version:
+        description: 'The published package version'
+        value: ${{ jobs.publish.outputs.package-version }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Required for OIDC authentication with npm
+      contents: read
+
+    outputs:
+      package-name: ${{ steps.package-info.outputs.name }}
+      package-version: ${{ steps.package-info.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: npm ci
+
+      - name: Run tests
+        if: inputs.run-tests == true
+        working-directory: ${{ inputs.working-directory }}
+        run: npm test
+
+      - name: Build package
+        working-directory: ${{ inputs.working-directory }}
+        run: npm run build --if-present
+
+      - name: Get package info
+        id: package-info
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          echo "name=$(jq -r .name package.json)" >> "$GITHUB_OUTPUT"
+          echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to npm (OIDC)
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          DRY_RUN: ${{ inputs.dry-run }}
+          NPM_TAG: ${{ inputs.npm-tag }}
+        run: |
+          DRY_RUN_FLAG=""
+          if [[ "$DRY_RUN" == "true" ]]; then
+            DRY_RUN_FLAG="--dry-run"
+            echo "Running in DRY RUN mode"
+          fi
+
+          echo "Publishing to npm with tag: $NPM_TAG"
+          npm publish --access=public --tag="$NPM_TAG" $DRY_RUN_FLAG
+
+          if [[ "$DRY_RUN" != "true" ]]; then
+            echo "✅ Successfully published $(jq -r .name package.json)@$(jq -r .version package.json)"
+          fi

@@ -1,0 +1,229 @@
+# NPM OIDC Publish Workflow
+
+A reusable GitHub Actions workflow for publishing npm packages using OIDC (OpenID Connect) Trusted Publishing - no npm tokens required!
+
+## Features
+
+- ✅ **No npm tokens** - Uses OIDC authentication directly with npmjs.com
+- ✅ **Automatic provenance** - npm automatically generates provenance attestations
+- ✅ **Enhanced security** - Short-lived, workflow-specific credentials
+- ✅ **Simple setup** - Minimal configuration required
+- ✅ **Public packages only** - Designed for publishing public npm packages
+
+## Prerequisites
+
+### 1. npm CLI Version
+Requires npm CLI v11.5.1 or later (automatically handled by GitHub Actions with Node 20+)
+
+### 2. Configure Trusted Publishing on npmjs.com
+
+You must configure your package for Trusted Publishing **before** using this workflow:
+
+#### Steps:
+
+1. **Login to npmjs.com** with a maintainer account
+   - Check maintainers: `npm view <package-name>`
+   - Login at: https://www.npmjs.com/login
+
+2. **Navigate directly to package access settings**
+   - **Important**: Use the direct link (search doesn't work reliably)
+   - Direct link format: `https://www.npmjs.com/package/<package-name>/access`
+   - Example: https://www.npmjs.com/package/@example/my-package/access
+
+3. **Add Trusted Publisher**
+   - Scroll to "Trusted publishers" section
+   - Click "Add trusted publisher"
+   - Select provider: **GitHub Actions**
+   - Fill in:
+     - **GitHub organization or user**: Your GitHub org/username
+     - **Repository**: Your repository name
+     - **Workflow filename**: Your workflow filename (e.g., `publish.yml` - filename only, not full path)
+     - **Environment name**: Leave blank (unless using GitHub Environments)
+   - **Important**: Check **"npm publish"** under "Allowed actions"
+   - Click "Add" or "Save"
+
+4. **Verify configuration**
+   ```
+   ✓ GitHub Actions
+     Organization: your-org
+     Repository: your-repo
+     Workflow: publish.yml
+     Environment: (any)
+     Allowed actions: npm publish
+   ```
+
+## Basic Usage
+
+Create a workflow file (e.g., `.github/workflows/publish.yml`):
+
+```yaml
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:  # Allow manual triggers
+
+jobs:
+  publish:
+    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
+    with:
+      # Optional: Node.js version (default: 20)
+      node-version: '20'
+
+      # Optional: npm dist-tag (default: latest)
+      npm-tag: 'latest'
+
+      # Optional: Run tests before publishing (default: true)
+      run-tests: true
+```
+
+## Inputs
+
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `node-version` | Node.js version to use | No | `'20'` |
+| `working-directory` | Working directory for the package | No | `'.'` |
+| `npm-tag` | npm dist-tag to use | No | `'latest'` |
+| `run-tests` | Run npm test before publishing | No | `true` |
+| `dry-run` | Perform a dry-run publish | No | `false` |
+
+## Outputs
+
+| Output | Description |
+|--------|-------------|
+| `package-name` | The published package name |
+| `package-version` | The published package version |
+
+## Advanced Examples
+
+### Publish on Git Tags
+
+```yaml
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
+    with:
+      npm-tag: 'latest'
+```
+
+### Publish Beta Versions
+
+```yaml
+name: Publish Beta
+
+on:
+  push:
+    branches:
+      - beta
+
+jobs:
+  publish:
+    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
+    with:
+      npm-tag: 'beta'
+```
+
+### Monorepo Support
+
+```yaml
+name: Publish Package A
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-a:
+    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
+    with:
+      working-directory: './packages/package-a'
+      npm-tag: 'latest'
+```
+
+### Dry Run for Testing
+
+```yaml
+name: Test Publish
+
+on:
+  pull_request:
+
+jobs:
+  test-publish:
+    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
+    with:
+      dry-run: true
+```
+
+## Package.json Requirements
+
+Your `package.json` should include:
+
+```json
+{
+  "name": "@your-scope/your-package",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "your-build-command",  // Optional, runs if present
+    "test": "your-test-command"      // Required if run-tests: true
+  }
+}
+```
+
+For **scoped packages** to be public, ensure:
+```json
+{
+  "publishConfig": {
+    "access": "public"
+  }
+}
+```
+
+## Troubleshooting
+
+### 403 Forbidden Error
+
+**Cause**: npm rejected the OIDC token - Trusted Publisher configuration doesn't match
+
+**Solution**:
+1. Verify organization/repository name is correct (case-sensitive)
+2. Check workflow filename matches exactly (filename only, not path)
+3. Ensure "npm publish" is checked under Allowed actions
+4. Verify package is configured as public (not private)
+
+### 404 Not Found
+
+**Cause**: npm couldn't match your workflow to the Trusted Publisher config
+
+**Solution**: Double-check all configuration values match exactly
+
+### No OIDC Token
+
+**Cause**: Missing `id-token: write` permission
+
+**Solution**: This workflow includes the permission - ensure you're not overriding it
+
+## Security Notes
+
+- ✅ No long-lived tokens stored in repository secrets
+- ✅ OIDC tokens are short-lived and workflow-specific
+- ✅ Automatic provenance provides supply chain transparency
+- ⚠️ Only works for **public packages** - private packages still require tokens
+- ⚠️ Trusted Publisher config is permanent - review carefully before creating
+
+## More Information
+
+- [npm Trusted Publishing Documentation](https://docs.npmjs.com/trusted-publishers/)
+- [GitHub OIDC Documentation](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
+- [npm Provenance Documentation](https://docs.npmjs.com/generating-provenance-statements/)
+
+## License
+
+MIT
