@@ -10,5 +10,8 @@ Publish npm packages using OIDC Trusted Publishing - **no npm tokens required!**
 
 ## Contributing
 
-We welcome contributions! Please open an issue or pull request.
+This repository is maintained by Mapbox for use with Mapbox public repositories. While the workflows are public and can be used by external projects, we primarily built this for gha workflows in our public facing repositories.
+
+Should you have any ideas for improvement, please reach out in the issues sections and we can triage accordingly.
+
 
