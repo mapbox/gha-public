@@ -13,7 +13,7 @@ A reusable GitHub Actions workflow for publishing npm packages using OIDC (OpenI
 ## Prerequisites
 
 ### 1. npm CLI Version
-Requires npm CLI v11.5.1 or later (automatically handled by GitHub Actions with Node 20+)
+Requires npm CLI v11.5.1 or later (installed in the workflow)
 
 ### 2. Configure Trusted Publishing on npmjs.com
 
@@ -68,8 +68,8 @@ jobs:
   publish:
     uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
     with:
-      # Optional: Node.js version (default: 20)
-      node-version: '20'
+      # Optional: Node.js version (default: 22)
+      node-version: '22'
 
       # Optional: npm dist-tag (default: latest)
       npm-tag: 'latest'
@@ -82,7 +82,7 @@ jobs:
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `node-version` | Node.js version to use | No | `'20'` |
+| `node-version` | Node.js version to use | No | `'22'` |
 | `working-directory` | Working directory for the package | No | `'.'` |
 | `npm-tag` | npm dist-tag to use | No | `'latest'` |
 | `run-tests` | Run npm test before publishing | No | `true` |
@@ -109,7 +109,7 @@ on:
 
 jobs:
   publish:
-    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
+    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@main
     with:
       npm-tag: 'latest'
 ```
@@ -126,7 +126,7 @@ on:
 
 jobs:
   publish:
-    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
+    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@main
     with:
       npm-tag: 'beta'
 ```
@@ -141,7 +141,7 @@ on:
 
 jobs:
   publish-a:
-    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
+    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@main
     with:
       working-directory: './packages/package-a'
       npm-tag: 'latest'
@@ -157,7 +157,7 @@ on:
 
 jobs:
   test-publish:
-    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
+    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@main
     with:
       dry-run: true
 ```
