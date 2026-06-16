@@ -4,10 +4,10 @@ on:
   workflow_call:
     inputs:
       node-version:
-        description: 'Node.js version to use (default: 20)'
+        description: 'Node.js version to use (default: 22)'
         type: string
         required: false
-        default: '20'
+        default: '22'
       working-directory:
         description: 'Working directory for the package (default: .)'
         type: string
@@ -58,6 +58,9 @@ jobs:
           node-version: ${{ inputs.node-version }}
           cache: 'npm'
           cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+
+      - name: Upgrade npm to latest
+        run: npm install -g npm@^11.5.1
 
       - name: Install dependencies
         working-directory: ${{ inputs.working-directory }}
