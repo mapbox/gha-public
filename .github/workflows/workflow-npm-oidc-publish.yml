@@ -127,7 +127,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: v${{ needs.publish.outputs.package-version }}
         run: |
-          if git ls-remote --tags origin | grep -q "refs/tags/${TAG}$"; then
+          if git ls-remote --tags origin | grep -qF "refs/tags/${TAG}"; then
             echo "❌ Tag ${TAG} already exists. Bump the version before releasing."
             exit 1
           fi
