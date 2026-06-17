@@ -54,10 +54,10 @@ jobs:
       package-version: ${{ steps.package-info.outputs.version }}
 
     steps:
-      - name: Enforce main branch
+      - name: Enforce default branch
         run: |
-          if [[ "${{ github.ref }}" != "refs/heads/main" ]]; then
-            echo "❌ Publishing is only allowed from the main branch."
+          if [[ "${{ github.ref }}" != "refs/heads/${{ github.event.repository.default_branch }}" ]]; then
+            echo "❌ Publishing is only allowed from the default branch (${{ github.event.repository.default_branch }})."
             echo "   Current ref: ${{ github.ref }}"
             exit 1
           fi
