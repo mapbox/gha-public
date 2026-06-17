@@ -54,7 +54,28 @@ You must configure your package for Trusted Publishing **before** using this wor
 
 ## Basic Usage
 
-Create a workflow file (e.g., `.github/workflows/publish.yml`):
+Choose a trigger that fits your release process.
+
+### Option A: Manual release (`workflow_dispatch`)
+
+Publish only when you explicitly decide to — useful when not every merge to main should cut a release.
+
+```yaml
+name: Publish to npm
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
+    with:
+      npm-tag: 'latest'
+```
+
+### Option B: Publish on every merge to default branch
+
+Publish automatically on every PR merge. Best suited for projects where every merge is a releasable change and the version is always bumped in the PR.
 
 ```yaml
 name: Publish to npm
@@ -62,21 +83,16 @@ name: Publish to npm
 on:
   push:
     branches:
-      - main  # Triggers on PR merge to main
+      - main
 
 jobs:
   publish:
     uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
     with:
-      # Optional: Node.js version (default: 22)
-      node-version: '22'
-
-      # Optional: npm dist-tag (default: latest)
       npm-tag: 'latest'
-
-      # Optional: Run tests before publishing (default: true)
-      run-tests: true
 ```
+
+> **Note:** `npm publish` will fail if the version in `package.json` has already been published. Make sure the version is bumped before merging.
 
 ## Inputs
 
