@@ -28,6 +28,11 @@ on:
         type: boolean
         required: false
         default: false
+      create-github-release:
+        description: 'Create a GitHub release after publishing (default: false). Skipped on dry-run. Fails if the tag already exists.'
+        type: boolean
+        required: false
+        default: false
 
     outputs:
       package-name:
@@ -41,14 +46,22 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # Required for OIDC authentication with npm
-      contents: read
+      id-token: write   # Required for OIDC authentication with npm
+      contents: write   # Required for creating GitHub releases
 
     outputs:
       package-name: ${{ steps.package-info.outputs.name }}
       package-version: ${{ steps.package-info.outputs.version }}
 
     steps:
+      - name: Enforce main branch
+        run: |
+          if [[ "${{ github.ref }}" != "refs/heads/main" ]]; then
+            echo "❌ Publishing is only allowed from the main branch."
+            echo "   Current ref: ${{ github.ref }}"
+            exit 1
+          fi
+
       - name: Checkout code
         uses: actions/checkout@v6
 
@@ -100,3 +113,23 @@ jobs:
           if [[ "$DRY_RUN" != "true" ]]; then
             echo "✅ Successfully published $(jq -r .name package.json)@$(jq -r .version package.json)"
           fi
+
+      - name: Create GitHub release
+        if: inputs.create-github-release == true && inputs.dry-run == false
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          VERSION="$(jq -r .version package.json)"
+          TAG="v${VERSION}"
+
+          if git ls-remote --tags origin | grep -q "refs/tags/${TAG}$"; then
+            echo "❌ Tag ${TAG} already exists. Bump the version before releasing."
+            exit 1
+          fi
+
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --generate-notes
+
+          echo "✅ GitHub release ${TAG} created."
