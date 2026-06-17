@@ -68,7 +68,7 @@ on:
 
 jobs:
   publish:
-    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
+    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@main
     with:
       npm-tag: 'latest'
 ```
@@ -87,7 +87,7 @@ on:
 
 jobs:
   publish:
-    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@v1
+    uses: mapbox/gha-public/.github/workflows/workflow-npm-oidc-publish.yml@main
     with:
       npm-tag: 'latest'
 ```
