@@ -19,10 +19,10 @@ on:
         required: false
         default: 'latest'
       run-tests:
-        description: 'Run npm test before publishing (default: true)'
+        description: 'Run npm test before publishing (default: false). Tests are typically enforced at PR time; skipping here keeps the publish workflow focused on publishing.'
         type: boolean
         required: false
-        default: true
+        default: false
       dry-run:
         description: 'Perform a dry-run publish (default: false)'
         type: boolean

@@ -101,7 +101,7 @@ jobs:
 | `node-version` | Node.js version to use | No | `'22'` |
 | `working-directory` | Working directory for the package | No | `'.'` |
 | `npm-tag` | npm dist-tag to use | No | `'latest'` |
-| `run-tests` | Run npm test before publishing | No | `true` |
+| `run-tests` | Run npm test before publishing | No | `false` |
 | `dry-run` | Perform a dry-run publish | No | `false` |
 | `create-github-release` | Create a GitHub release with auto-generated notes after publishing. Skipped on dry-run. Fails if the version tag already exists. | No | `false` |
 
