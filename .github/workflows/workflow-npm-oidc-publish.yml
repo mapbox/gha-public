@@ -33,6 +33,11 @@ on:
         type: boolean
         required: false
         default: false
+      environment:
+        description: 'GitHub Environment to run the publish job under (default: empty). Set to enforce environment protection rules and include the environment claim in the OIDC token for npm trusted publishing.'
+        type: string
+        required: false
+        default: ''
 
     outputs:
       package-name:
@@ -45,6 +50,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     permissions:
       id-token: write  # Required for OIDC authentication with npm
       contents: read
