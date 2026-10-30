@@ -1,0 +1,24 @@
+name: Test action-conventional-commit-version
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/test-action-conventional-commit-version.yml # self
+      - action-conventional-commit-version/**
+
+jobs:
+  test:
+    name: unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+
+      # No package.json here (composite action with runtime JS, no third-party deps), so the
+      # built-in runner rather than jest.
+      - run: node --test action-conventional-commit-version/generate-version.test.mjs

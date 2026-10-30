@@ -1,0 +1,59 @@
+name: Conventional commit version
+description: >-
+  Computes the next npm version to publish from Conventional Commits, using the package
+  registry -- not git tags -- as the source of truth for the current version. On a push to
+  the default branch (before-sha and after-sha both set), bumps based on the commits since
+  the commit the published version was built from (its registry gitHead, else before-sha):
+  feat -> minor; fix/perf/revert -> patch; a `!` after type/scope or a
+  `BREAKING CHANGE:` footer -> major, regardless of type; other types don't trigger a
+  release. Otherwise, publishes the next patch as a prerelease suffixed with the short
+  commit sha. Shells out to `npm view` against npm's configured registry, so a private
+  registry needs its credentials configured in an earlier step; npmjs.com needs none.
+inputs:
+  before-sha:
+    description: >-
+      The commit sha before the push, e.g. `github.event.before`. Combined with
+      after-sha on a push event, this triggers the Conventional Commits bump; otherwise a
+      prerelease (next 'patch' + short sha) is produced instead.
+    required: false
+  after-sha:
+    description: The commit sha after the push, e.g. `github.event.after`.
+    required: false
+  working-directory:
+    description: Directory containing the package.json to read and version.
+    required: false
+    default: "."
+  default-branch:
+    description: >-
+      The branch that gets real releases (via the Conventional Commits bump); any other
+      branch always gets a prerelease.
+    required: false
+    default: "main"
+outputs:
+  version:
+    description: The version to publish. Empty if skip is "true".
+    value: ${{ steps.version.outputs.version }}
+  skip:
+    description: >-
+      "true" if no commits since the last release warrant a release (only possible on a
+      default-branch push); publishing should be skipped.
+    value: ${{ steps.version.outputs.skip }}
+  npm_publish_tag:
+    description: >-
+      The npm dist-tag to publish under: "latest" for a real release, "prerelease"
+      otherwise. Publish under this tag (not a bare `npm publish`) so that prereleases never
+      clobber "latest", which this action reads back as the current version on every future
+      run.
+    value: ${{ steps.version.outputs.npm_publish_tag }}
+runs:
+  using: composite
+  steps:
+    - name: Determine next version
+      id: version
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        BEFORE_SHA: ${{ inputs.before-sha }}
+        AFTER_SHA: ${{ inputs.after-sha }}
+        DEFAULT_BRANCH: ${{ inputs.default-branch }}
+      run: node ${{ github.action_path }}/generate-version.mjs
