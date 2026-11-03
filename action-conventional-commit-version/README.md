@@ -6,10 +6,11 @@ On a push to the default branch, the version is bumped based on the commits sinc
 
 | Commit type | Bump |
 |---|---|
-| `feat` | minor |
-| `fix`, `perf`, `revert` | patch |
+| `major` | major |
+| `minor`, `feat` | minor |
+| `patch`, `fix`, `revert` | patch |
 | any type with a `!` after it (e.g. `feat!:`), or a `BREAKING CHANGE:`/`BREAKING-CHANGE:` footer anywhere in the commit message | major, regardless of type |
-| anything else (`chore`, `docs`, `style`, `refactor`, `test`, `build`, `ci`, or a non-Conventional-Commits message) | no release |
+| anything else (`chore`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, or a non-Conventional-Commits message) | no release |
 
 If none of the commits in range warrant a release, `skip` is `"true"` and `version` is empty.
 
@@ -18,6 +19,16 @@ On any other branch, or a `workflow_dispatch` run, the version is the next patch
 The action runs `npm view <package> version gitHead --json` against whichever registry npm is configured for. Public packages on npmjs.com need no credentials; for a private registry, configure npm credentials in an earlier step.
 
 Squash merging with the PR title as the commit message works best, so each PR title decides its bump.
+
+Either style works, and they can be mixed freely. The explicit `major:`/`minor:`/`patch:` prefixes are the recommended default since they name the bump directly; the standard Conventional Commits types are supported as well:
+
+| Bump | Explicit prefix | Conventional Commits |
+|---|---|---|
+| major | `major: drop Node 18 support` | `feat!: drop Node 18 support` |
+| minor | `minor: add dropdowns` | `feat: add dropdowns` |
+| patch | `patch: fix dropdown focus` | `fix: dropdown focus` |
+
+Both accept a scope (`minor(dropdowns): ...`, `feat(dropdowns): ...`), and a `!` or `BREAKING CHANGE:` footer makes any of them a major bump.
 
 ## Usage
 
