@@ -1,14 +1,14 @@
 name: Conventional commit version
 description: >-
   Computes the next npm version to publish from Conventional Commits, using the package
-  registry -- not git tags -- as the source of truth for the current version. On a push to
-  the default branch (before-sha and after-sha both set), bumps based on the commits since
-  the commit the published version was built from (its registry gitHead, else before-sha):
-  feat -> minor; fix/perf/revert -> patch; a `!` after type/scope or a
-  `BREAKING CHANGE:` footer -> major, regardless of type; other types don't trigger a
-  release. Otherwise, publishes the next patch as a prerelease suffixed with the short
-  commit sha. Shells out to `npm view` against npm's configured registry, so a private
-  registry needs its credentials configured in an earlier step; npmjs.com needs none.
+  registry -- not git tags -- as the source of truth for the current version. On a push to the
+  default branch (before-sha and after-sha both set), bumps based on the commits since the
+  commit the published version was built from (its registry gitHead, else before-sha): major
+  -> major; minor/feat -> minor; patch/fix/revert -> patch; a `!` after type/scope or a
+  `BREAKING CHANGE:` footer -> major, regardless of type; other types don't trigger a release.
+  Otherwise, publishes the next patch as a prerelease suffixed with the short commit sha.
+  Shells out to `npm view` against npm's configured registry, so a private registry needs its
+  credentials configured in an earlier step; npmjs.com needs none.
 inputs:
   before-sha:
     description: >-

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Prints the version to publish, using the package registry (not git tags) as the source of
- * truth. On a push to main, bumps based on Conventional Commits since the last release; otherwise
+ * truth. On a push to main, bumps based on Conventional Commits (plus explicit major:/minor:/patch:
+ * prefixes) since the last release; otherwise
  * publishes the next 'patch' + `-<shortsha>` prerelease. See action.yml / README.md for I/O. No
  * third-party deps.
  */
@@ -13,6 +14,14 @@ export const SEMVER_RE = /^\d+\.\d+\.\d+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/;
 const HEADER_RE = /^(\w+)(\([^)]*\))?(!)?:\s?(.*)$/;
 const BREAKING_FOOTER_RE = /^BREAKING[ -]CHANGE:/m;
 const INCREMENT_TYPES = ["patch", "minor", "major"];
+const TYPE_INCREMENTS = {
+  major: "major",
+  minor: "minor",
+  feat: "minor",
+  patch: "patch",
+  fix: "patch",
+  revert: "patch",
+};
 
 /**
  * @param {string} version e.g. "1.2.3-abc1234"
@@ -55,9 +64,10 @@ export function increment(version, type) {
 }
 
 /**
- * Bump for one commit message, or null if it doesn't warrant a release. feat -> minor;
- * fix/perf/revert -> patch; `!` after type/scope or a BREAKING CHANGE: footer -> major
- * regardless of type; anything else (chore, docs, ..., or non-conventional) -> null.
+ * Bump for one commit message, or null if it doesn't warrant a release. major -> major;
+ * minor/feat -> minor; patch/fix/revert -> patch; `!` after type/scope or a
+ * BREAKING CHANGE: footer -> major regardless of type; anything else (chore, docs, ..., or
+ * non-conventional) -> null.
  *
  * @param {string} message header plus body/footer
  * @returns {"major"|"minor"|"patch"|null}
@@ -73,13 +83,7 @@ export function getIncrementTypeForMessage(message) {
   if (bang || BREAKING_FOOTER_RE.test(message)) {
     return "major";
   }
-  if (type === "feat") {
-    return "minor";
-  }
-  if (type === "fix" || type === "perf" || type === "revert") {
-    return "patch";
-  }
-  return null;
+  return Object.hasOwn(TYPE_INCREMENTS, type) ? TYPE_INCREMENTS[type] : null;
 }
 
 /**

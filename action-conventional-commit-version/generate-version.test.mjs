@@ -90,16 +90,31 @@ test("getIncrementTypeForMessage", async (t) => {
     assert.equal(getIncrementTypeForMessage("fix: resolved issue with dropdowns"), "patch");
   });
 
-  await t.test("perf -> patch", () => {
-    assert.equal(getIncrementTypeForMessage("perf: speed up dropdown rendering"), "patch");
-  });
-
   await t.test("revert -> patch", () => {
     assert.equal(getIncrementTypeForMessage("revert: feat: add dropdowns"), "patch");
   });
 
-  await t.test("chore/docs/style/refactor/test/build/ci -> no release", () => {
-    for (const type of ["chore", "docs", "style", "refactor", "test", "build", "ci"]) {
+  await t.test("explicit major/minor/patch prefixes bump by name", () => {
+    assert.equal(getIncrementTypeForMessage("major: drop legacy dropdowns"), "major");
+    assert.equal(getIncrementTypeForMessage("minor: add dropdowns"), "minor");
+    assert.equal(getIncrementTypeForMessage("patch: resolved issue with dropdowns"), "patch");
+  });
+
+  await t.test("explicit prefixes accept a scope", () => {
+    assert.equal(getIncrementTypeForMessage("minor(dropdowns): add multi-select"), "minor");
+  });
+
+  await t.test("bang after an explicit prefix -> major", () => {
+    assert.equal(getIncrementTypeForMessage("patch!: overhauled dropdowns"), "major");
+  });
+
+  await t.test("Object.prototype keys aren't treated as types", () => {
+    assert.equal(getIncrementTypeForMessage("constructor: did a thing"), null);
+    assert.equal(getIncrementTypeForMessage("toString: did a thing"), null);
+  });
+
+  await t.test("chore/docs/style/refactor/perf/test/build/ci -> no release", () => {
+    for (const type of ["chore", "docs", "style", "refactor", "perf", "test", "build", "ci"]) {
       assert.equal(getIncrementTypeForMessage(`${type}: did a thing`), null, type);
     }
   });
@@ -147,6 +162,11 @@ test("getIncrementTypeFromMessages", async (t) => {
   await t.test("a single fix among non-releasing commits is still a patch", () => {
     const messages = ["chore: tidy up", "fix: off-by-one", "docs: update readme"];
     assert.equal(getIncrementTypeFromMessages(messages), "patch");
+  });
+
+  await t.test("explicit prefixes mix with conventional types", () => {
+    const messages = ["patch: off-by-one", "minor: add dropdowns", "fix: typo"];
+    assert.equal(getIncrementTypeFromMessages(messages), "minor");
   });
 
   await t.test("any breaking commit wins outright", () => {
